@@ -1,0 +1,30 @@
+# Render Blueprint for GateKeeper TS.
+#
+# Deploys the complete service (Express HTTP API + WebSocket realtime hub) as a
+# single Node web service. Render injects PORT automatically; our config layer
+# (src/lib/env.ts) already reads it, so no PORT var is declared here.
+#
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: gatekeeper-ts
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GATE_IDS
+        value: GATE-NORTH,GATE-SOUTH,GATE-VISITOR,GATE-SERVICE
+      - key: DEFAULT_INVITATION_TTL_MINUTES
+        value: "120"
+      - key: DEFAULT_INVITATION_MAX_USES
+        value: "1"
+      - key: SIMULATOR_BASE_URL
+        value: https://gatekeeper-ts.onrender.com
+      - key: SIMULATOR_INTERVAL_MS
+        value: "4000"

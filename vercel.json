@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "echo 'GateKeeper TS landing page: no dependencies to install'",
+  "buildCommand": "echo 'GateKeeper TS landing page: static, no build step'",
+  "outputDirectory": "site",
+  "cleanUrls": true
+}

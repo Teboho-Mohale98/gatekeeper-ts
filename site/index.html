@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GateKeeper TS — Smart access control &amp; estate security platform</title>
+  <meta name="description" content="GateKeeper TS is a production-grade TypeScript backend and mock simulation engine for smart gate access control: visitor pre-clearance, licence-plate &amp; PIN readers, real-time WebSocket events and POPIA-compliant audit logging." />
+  <meta name="theme-color" content="#080d0b" />
+  <meta property="og:title" content="GateKeeper TS" />
+  <meta property="og:description" content="Strict TypeScript access control engine with real-time gate events and POPIA-compliant auditing." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1512'/%3E%3Cpath d='M9 8v16M23 8v16M9 12h14M9 20h14' stroke='%2335d07f' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E" />
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="#101a16" stroke="#1e2f28" />
+        <path d="M9 8v16M23 8v16M9 12h14M9 20h14" stroke="#35d07f" stroke-width="2.4" stroke-linecap="round" />
+      </svg>
+      <span>GateKeeper <small>TS</small></span>
+    </a>
+    <nav class="nav-links">
+      <a href="#demo">Live demo</a>
+      <a href="#features">Features</a>
+      <a href="#api">API</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#popia">POPIA</a>
+      <a href="#run">Run it</a>
+    </nav>
+    <a class="btn btn-ghost" href="https://github.com/Teboho-Mohale98/gatekeeper-ts" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============================ HERO ============================ -->
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow"><span class="dot"></span> TypeScript · strict · zero&nbsp;<code>any</code></span>
+      <h1>Smart access control for the <span class="accent">modern estate</span>.</h1>
+      <p class="lede">
+        A production-grade backend service and mock simulation engine for gated
+        estates: residents issue time- and usage-bound visitor codes, readers
+        present PINs and licence plates, a rule engine grants or denies access,
+        and every decision streams in real time while being written to a
+        POPIA-compliant audit trail.
+      </p>
+      <div class="tags">
+        <span class="tag">Node.js</span>
+        <span class="tag">Express</span>
+        <span class="tag">Zod</span>
+        <span class="tag">WebSockets (ws)</span>
+        <span class="tag">strict mode</span>
+        <span class="tag">no any</span>
+      </div>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/Teboho-Mohale98/gatekeeper-ts" target="_blank" rel="noopener">View on GitHub</a>
+        <a class="btn" href="#demo">Try the live API</a>
+        <span class="status-pill" id="api-status"><span class="dot"></span><span id="api-status-text">checking live API…</span></span>
+      </div>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-head">
+        <span class="lights"><i></i><i></i><i></i></span>
+        POST /api/access/verify
+      </div>
+<pre><span class="c">// a visitor types their pre-clearance code at the boom</span>
+{
+  <span class="k">"gateId"</span>: <span class="s">"GATE-NORTH"</span>,
+  <span class="k">"accessMethod"</span>: <span class="s">"PIN_CODE"</span>,
+  <span class="k">"accessCode"</span>: <span class="s">"778436"</span>
+}
+
+<span class="c">// 200 OK</span>
+{
+  <span class="k">"decision"</span>: {
+    <span class="k">"granted"</span>: <span class="n">true</span>,
+    <span class="k">"rejectionReason"</span>: <span class="n">null</span>,
+    <span class="k">"residentUnit"</span>: <span class="s">"BLOCK-A-10"</span>,
+    <span class="k">"detail"</span>: <span class="s">"Access granted for Naledi M."</span>
+  },
+  <span class="k">"gateStatus"</span>: <span class="ok">"GRANTED"</span>,
+  <span class="k">"logId"</span>: <span class="s">"log_…"</span>
+}</pre>
+    </div>
+  </div>
+
+  <!-- ============================ DEMO ============================ -->
+  <section id="demo">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">Live playground</p>
+        <h2>Drive the engine from your browser</h2>
+        <p>
+          This page talks to the deployed GateKeeper TS service on Render (HTTP + WebSocket).
+          Create a visitor invitation, then scan it at a gate and watch the real-time event feed.
+        </p>
+      </div>
+
+      <div class="play-grid">
+        <!-- left: controls -->
+        <div class="card setup">
+          <h3>1 · Connectivity</h3>
+          <p class="hint">The full app runs on Render. If the API URL below is unreachable, paste your own deployment URL.</p>
+          <div class="stack">
+            <input id="api-url-input" type="url" placeholder="https://your-service.onrender.com" />
+            <button class="btn" id="api-url-save" type="button">Use this API URL</button>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:18px 0" />
+
+          <h3>2 · Create an invitation</h3>
+          <p class="hint">A resident issues a single-use code bound to a plate and visitor.</p>
+          <button class="btn btn-primary" id="btn-create" type="button" disabled>Create invitation</button>
+          <div class="invite-result" id="invite-result"></div>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:18px 0" />
+
+          <h3>3 · Scan at the gate</h3>
+          <p class="hint">Grant, then re-use the same code to see the usage limit enforced.</p>
+          <div class="stack">
+            <button class="btn" id="btn-valid" type="button" disabled>Scan valid code</button>
+            <button class="btn" id="btn-reuse" type="button" disabled>Scan again (expect deny)</button>
+            <button class="btn" id="btn-unknown" type="button" disabled>Scan unknown plate (expect deny)</button>
+          </div>
+        </div>
+
+        <!-- right: output -->
+        <div class="card">
+          <h3>Decisions</h3>
+          <p class="hint">Every evaluation is returned synchronously and persisted to the audit log.</p>
+          <div class="decision-log" id="decision-log"><div class="muted">Waiting for your first scan…</div></div>
+
+          <h3 style="margin-top:18px">Real-time events <span class="muted" style="font-weight:400">· WebSocket <code>/realtime</code></span></h3>
+          <p class="hint">Broadcast as they happen: <code>ACCESS_EVENT</code>, <code>GATE_STATUS</code>, <code>INVITATION_EVENT</code>.</p>
+          <div class="event-feed" id="event-feed"><div class="muted">Connecting…</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== FEATURES ========================== -->
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">Capabilities</p>
+        <h2>What the engine does</h2>
+      </div>
+      <div class="cards">
+        <div class="feature"><div class="ico">🎟️</div><h3>Visitor pre-clearance</h3><p>Cryptographically random access codes with configurable TTL, usage limits, per-method permissions and revocation.</p></div>
+        <div class="feature"><div class="ico">⚖️</div><h3>Ordered rule engine</h3><p>Gate online → credential match → not revoked → not expired → method allowed → uses remaining → grant.</p></div>
+        <div class="feature"><div class="ico">🔑</div><h3>Five reader types</h3><p>PIN, licence plate, Bluetooth, facial recognition and biometric — modelled as a discriminated union.</p></div>
+        <div class="feature"><div class="ico">📡</div><h3>Real-time events</h3><p>Typed WebSocket frames for access, gate-status and invitation lifecycle, with per-gate subscriptions.</p></div>
+        <div class="feature"><div class="ico">🛡️</div><h3>POPIA-compliant</h3><p>ID numbers, phone numbers, plates and codes are masked before they ever reach the audit log.</p></div>
+        <div class="feature"><div class="ico">🤖</div><h3>Hardware simulator</h3><p>A standalone script that seeds data and bombards the API with a realistic mix of valid and invalid scans.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= API ============================= -->
+  <section id="api">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">HTTP API</p>
+        <h2>Endpoints</h2>
+        <p>All request bodies are validated with Zod. Errors share a single envelope: <code>{ "error": { "code", "message", "details" } }</code>.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><span class="method post">POST</span></td><td><code>/api/invitations</code></td><td>Resident creates a visitor pre-clearance / PIN code.</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/api/access/verify</code></td><td>Simulate a gate reader scanning a credential → grant / deny decision.</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/logs</code></td><td>Recent audit logs with filtering by gate, status, method, unit and time.</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/api/invitations</code></td><td>List invitations (POPIA-masked projection).</td></tr>
+            <tr><td><span class="method post">POST</span></td><td><code>/api/invitations/:id/revoke</code></td><td>Revoke an invitation ahead of expiry.</td></tr>
+            <tr><td><span class="method get">GET</span></td><td><code>/health</code></td><td>Liveness probe.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap" style="margin-top:18px">
+        <table>
+          <thead><tr><th>Rejection reason</th><th>When it fires</th></tr></thead>
+          <tbody>
+            <tr><td><code>GATE_OFFLINE</code></td><td>The gate does not exist or is offline.</td></tr>
+            <tr><td><code>NO_MATCHING_INVITATION</code></td><td>Credential resolves to no known invitation.</td></tr>
+            <tr><td><code>INVITATION_REVOKED</code></td><td>Resident revoked the invitation.</td></tr>
+            <tr><td><code>INVITATION_EXPIRED</code></td><td>Past the invitation's expiry time.</td></tr>
+            <tr><td><code>METHOD_NOT_PERMITTED</code></td><td>Invitation does not allow this access method.</td></tr>
+            <tr><td><code>USAGE_LIMIT_REACHED</code></td><td>The code has been used the maximum number of times.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= ARCHITECTURE ======================= -->
+  <section id="architecture">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">Clean architecture</p>
+        <h2>One direction of dependency</h2>
+        <p>The domain never imports Express, <code>ws</code> or a database. A single composition root wires concrete adapters to interfaces, so persistence and transport are swappable.</p>
+      </div>
+      <div class="layers">
+        <div class="layer"><span class="lname">http/ + realtime/</span><span class="ldesc">Express routes, middleware, WebSocket hub — the delivery mechanism.</span></div>
+        <div class="layer"><span class="lname">services/</span><span class="ldesc">Visitor lifecycle, gate state machine, the access-validation rule engine.</span></div>
+        <div class="layer"><span class="lname">repositories/</span><span class="ldesc">Persistence ports with in-memory adapters (swap for Redis/Postgres).</span></div>
+        <div class="layer"><span class="lname">schemas/ + lib/</span><span class="ldesc">Zod validation, POPIA masking, config, logging, ids.</span></div>
+        <div class="layer"><span class="lname">types/</span><span class="ldesc">Domain vocabulary — the single source of truth, zero <code>any</code>.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ POPIA ========================== -->
+  <section id="popia">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">Compliance by design</p>
+        <h2>POPIA masking on every write</h2>
+        <p>Every audit record passes through a single masking choke-point, so raw personal identifiers are never persisted.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Raw</th><th>Stored / displayed</th></tr></thead>
+          <tbody>
+            <tr><td>ID number</td><td><code>9001015800083</code></td><td><code>***********83</code></td></tr>
+            <tr><td>Phone number</td><td><code>+27 82 123 4567</code></td><td><code>**********67</code></td></tr>
+            <tr><td>Licence plate</td><td><code>CA 123 456</code></td><td><code>CA *** **6</code></td></tr>
+            <tr><td>Access code</td><td><code>778436</code></td><td><code>*****6</code></td></tr>
+            <tr><td>Visitor name</td><td><code>Thandiwe Nkosi</code></td><td><code>Thandiwe N.</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================= RUN =========================== -->
+  <section id="run">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="kicker">Quickstart</p>
+        <h2>Run it locally in three commands</h2>
+        <p>The full WebSocket app runs anywhere Node runs. Use the CLI, or deploy it with the buttons below.</p>
+      </div>
+      <div class="terminal">
+        <div class="terminal-head"><span class="lights"><i></i><i></i><i></i></span> bash</div>
+<pre><span class="c"># clone + install</span>
+git clone https://github.com/Teboho-Mohale98/gatekeeper-ts.git
+cd gatekeeper-ts &amp;&amp; npm install
+
+<span class="c"># start the service (HTTP + WebSocket on :4000)</span>
+npm run dev
+
+<span class="c"># in a second terminal: drive it with simulated hardware</span>
+npm run simulate</pre>
+      </div>
+
+      <div class="deploy-row" style="margin-top:22px">
+        <div class="deploy-card">
+          <h3>Deploy the full app</h3>
+          <p class="hint">Render runs the complete Express + WebSocket service using the repo's blueprint.</p>
+          <a class="btn btn-primary" href="https://render.com/deploy?repo=https://github.com/Teboho-Mohale98/gatekeeper-ts" target="_blank" rel="noopener">Deploy to Render</a>
+        </div>
+        <div class="deploy-card">
+          <h3>Frontend on Vercel</h3>
+          <p class="hint">This landing page is static and hosted on Vercel. Vercel Functions don't support long-lived WebSockets, so the live engine lives on Render.</p>
+          <a class="btn" href="https://vercel.com/new/clone?repository-url=https://github.com/Teboho-Mohale98/gatekeeper-ts" target="_blank" rel="noopener">Deploy to Vercel</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap footer-row">
+      <span>GateKeeper TS — a portfolio demonstration of senior-level TypeScript, clean architecture and real-time, compliance-aware domain engineering.</span>
+      <span><a href="https://github.com/Teboho-Mohale98/gatekeeper-ts" target="_blank" rel="noopener">GitHub</a> · MIT</span>
+    </div>
+  </footer>
+
+</main>
+
+<script src="/config.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
