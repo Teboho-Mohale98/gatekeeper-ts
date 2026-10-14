@@ -1,0 +1,8 @@
+# Compiled output is rebuilt by Vercel from src/ - never ship stale JS.
+dist
+
+# The landing page is its own Vercel project (see site/).
+site
+
+# Local tooling not needed at runtime.
+*.log

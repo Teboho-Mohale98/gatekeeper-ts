@@ -16,9 +16,14 @@ import { createHealthRouter } from './routes/health.routes';
 import { createInvitationRouter } from './routes/invitation.routes';
 import { createAccessLogRouter } from './routes/log.routes';
 
-export function createApp(container: AppContainer): Express {
-  const app = express();
-
+/**
+ * Wire middleware and routers onto an existing Express instance.
+ *
+ * Split out from {@link createApp} so a caller that needs to own the Express
+ * instance itself - notably the Vercel entry, where the platform requires the
+ * express import to live in the entry file - can still reuse all routing.
+ */
+export function configureApp(app: Express, container: AppContainer): Express {
   app.disable('x-powered-by');
   app.use(corsMiddleware);
   app.use(express.json({ limit: '64kb' }));
@@ -33,4 +38,8 @@ export function createApp(container: AppContainer): Express {
   app.use(createErrorHandler(container.logger));
 
   return app;
+}
+
+export function createApp(container: AppContainer): Express {
+  return configureApp(express(), container);
 }

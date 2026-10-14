@@ -13,6 +13,8 @@
   var base = '';
   var socket = null;
   var lastInvite = null;
+  var reconnectTimer = null;
+  var reconnectDelay = 1000;
 
   function el(id) {
     return document.getElementById(id);
@@ -126,22 +128,31 @@
   /* ------------------------------ websocket ---------------------------- */
 
   function connectRealtime() {
+    if (reconnectTimer !== null) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+
     if (socket) {
+      socket.onclose = null;
       try {
         socket.close();
       } catch (error) {
         /* ignore */
       }
+      socket = null;
     }
     var wsUrl = base.replace(/^http/, 'ws') + '/realtime';
 
     try {
       socket = new WebSocket(wsUrl);
     } catch (error) {
+      scheduleReconnect();
       return;
     }
 
     socket.onopen = function () {
+      reconnectDelay = 1000;
       socket.send(JSON.stringify({ type: 'SUBSCRIBE', payload: { gateId: null } }));
       prepend('event-feed', '<span class="muted">connected · ' + escapeHtml(wsUrl) + '</span>');
     };
@@ -179,12 +190,33 @@
     };
 
     socket.onerror = function () {
-      prepend('event-feed', '<span class="deny">realtime socket error</span>');
+      /* The close handler drives reconnection; keep the feed quiet here. */
     };
 
     socket.onclose = function () {
-      prepend('event-feed', '<span class="muted">realtime disconnected</span>');
+      prepend(
+        'event-feed',
+        '<span class="muted">realtime disconnected · reconnecting in ' +
+          Math.round(reconnectDelay / 1000) + 's</span>',
+      );
+      scheduleReconnect();
     };
+  }
+
+  /**
+   * Vercel closes WebSocket connections when the function hits its maximum
+   * duration, so a close is expected rather than an error. Reconnect with
+   * exponential backoff (capped at 30s) plus a little jitter so many clients
+   * do not reconnect in lockstep.
+   */
+  function scheduleReconnect() {
+    if (reconnectTimer !== null) return;
+    var delay = reconnectDelay + Math.floor(Math.random() * 400);
+    reconnectTimer = setTimeout(function () {
+      reconnectTimer = null;
+      connectRealtime();
+    }, delay);
+    reconnectDelay = Math.min(reconnectDelay * 2, 30000);
   }
 
   /* ------------------------------- actions ----------------------------- */
@@ -281,6 +313,7 @@
       if (health && health.status === 'ok') {
         setStatus('online', 'live API online · ' + health.gateCount + ' gates');
         setControlsEnabled(true);
+        reconnectDelay = 1000;
         connectRealtime();
       } else {
         setStatus('offline', 'live API unreachable');
@@ -288,7 +321,7 @@
         prepend(
           'event-feed',
           '<span class="notice">Could not reach ' + escapeHtml(base) +
-            '. Deploy the API on Render (see the Deploy section) or paste a reachable URL above.</span>',
+            '. The API runs on Vercel - paste a reachable URL above if this one is down.</span>',
         );
       }
     });

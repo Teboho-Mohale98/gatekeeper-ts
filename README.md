@@ -21,7 +21,7 @@ end-to-end simulator you can watch drive the system.
 [![POPIA](https://img.shields.io/badge/compliance-POPIA-1f8f56)](#popia-compliance)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**Live showcase:** https://gatekeeper-ts.vercel.app · **API service:** https://gatekeeper-ts.onrender.com
+**Live showcase:** https://gatekeeper-ts.vercel.app · **API service:** https://gatekeeper-ts-api.vercel.app
 
 ---
 
@@ -448,32 +448,38 @@ platforms like ClickOn are.
 
 ## Deployment
 
-The project is intentionally split across two hosts:
+The whole application runs on **Vercel**, split into two projects that share
+the same repository:
 
-| Piece | Host | Why |
-| ----- | ---- | --- |
-| **Full app** (Express HTTP + WebSocket hub) | **Render** | Render supports long-lived WebSocket connections and a real Node process. |
-| **Landing / showcase page** (`site/`) | **Vercel** | Static site hosting, instant global CDN. |
+| Piece | Vercel project | What it is |
+| ----- | -------------- | ---------- |
+| **API service** | `gatekeeper-ts-api` | Express HTTP app + `ws` realtime hub, served from `src/index.ts` as a Vercel Function. |
+| **Landing / showcase page** (`site/`) | `gatekeeper-ts` | Static site with the marketing page and the in-browser playground. |
 
-> **Why not the API on Vercel?** Vercel's serverless functions do not support
-> long-lived WebSocket connections and reset in-memory state between
-> invocations, so the realtime gate stream cannot run there. The static
-> showcase page on Vercel talks to the API on Render instead.
+> **WebSockets on Vercel.** Vercel Functions serve WebSocket connections
+> natively (public beta). The API service default-exports a Node `http.Server`
+> with a `ws` `WebSocketServer` attached, so HTTP and `wss://…/realtime` share a
+> single origin. A connection closes when the function reaches its maximum
+> duration, so the browser client reconnects with exponential backoff.
+>
+> **State caveat.** A connection pins to one function instance, and the in-memory
+> repositories reset on cold start, so state is not shared across instances. That
+> is fine for a demo; production would back the repositories with a shared store
+> (for example Vercel KV / Upstash Redis).
 
-### Deploy the full app to Render
+### Deploy the API to Vercel
 
-The repo ships a [`render.yaml`](render.yaml) Blueprint, so it is one click:
+The API project is rooted at the **repository root** and configured by
+[`vercel.json`](vercel.json) (`"framework": "express"`, entry `src/index.ts`):
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Teboho-Mohale98/gatekeeper-ts)
+```bash
+vercel link --project gatekeeper-ts-api
+vercel deploy --prod
+```
 
-Or manually create a **Web Service** pointing at the repo with:
-
-- **Build command:** `npm ci && npm run build`
-- **Start command:** `npm start`
-- **Health check path:** `/health`
-
-Render injects `PORT` automatically. Once live, the service is reachable at
-`https://<service-name>.onrender.com` (HTTP and `wss://…/realtime`).
+Vercel installs dependencies, runs `npm run build` (`tsc`), and serves
+`src/index.ts` as a single Express Function. Once live it answers at
+`https://<project>.vercel.app` for both HTTP and `wss://<project>.vercel.app/realtime`.
 
 ### Deploy the landing page to Vercel
 
@@ -488,13 +494,14 @@ vercel --prod
 
 When connecting the GitHub repo through the Vercel dashboard instead, set the
 project's **Root Directory** to `site`. After deploying, set `site/config.js` →
-`apiBaseUrl` to your Render URL so the in-browser playground talks to the live
-engine (it already defaults to `https://gatekeeper-ts.onrender.com`).
+`apiBaseUrl` to your API project URL so the in-browser playground talks to the
+live engine (it already defaults to `https://gatekeeper-ts-api.vercel.app`).
 
 ### Configuration
 
-All values are validated at boot (see `src/lib/env.ts`). The Blueprint sets
-production defaults; override them in the host's dashboard.
+All values are validated at boot (see `src/lib/env.ts`). Vercel sets `PORT` and
+`NODE_ENV` for you; override the rest in the project's Environment Variables
+settings.
 
 | Variable | Default | Purpose |
 | -------- | ------- | ------- |
@@ -514,6 +521,8 @@ The in-memory repositories are intentional for a self-contained demo; the ports
 make upgrades mechanical. Natural next steps:
 
 - **Persistence** — swap `InMemoryInvitationRepository` for PostgreSQL/Redis.
+- **Shared realtime state** — back rooms/presence with Redis pub/sub so live
+  events fan out across every function instance, not just the one holding a socket.
 - **AuthN/Z** — add resident authentication (JWT/OIDC) and gate-to-platform mTLS.
 - **Rate limiting & idempotency** — protect `/api/access/verify` and dedupe scans.
 - **Observability** — expose Prometheus metrics and OpenTelemetry traces.

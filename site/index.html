@@ -97,7 +97,7 @@
         <p class="kicker">Live playground</p>
         <h2>Drive the engine from your browser</h2>
         <p>
-          This page talks to the deployed GateKeeper TS service on Render (HTTP + WebSocket).
+          This page talks to the deployed GateKeeper TS service on Vercel (HTTP + WebSocket).
           Create a visitor invitation, then scan it at a gate and watch the real-time event feed.
         </p>
       </div>
@@ -106,9 +106,9 @@
         <!-- left: controls -->
         <div class="card setup">
           <h3>1 · Connectivity</h3>
-          <p class="hint">The full app runs on Render. If the API URL below is unreachable, paste your own deployment URL.</p>
+          <p class="hint">The full app runs on Vercel. If the API URL below is unreachable, paste your own deployment URL.</p>
           <div class="stack">
-            <input id="api-url-input" type="url" placeholder="https://your-service.onrender.com" />
+            <input id="api-url-input" type="url" placeholder="https://your-project.vercel.app" />
             <button class="btn" id="api-url-save" type="button">Use this API URL</button>
           </div>
 
@@ -264,14 +264,14 @@ npm run simulate</pre>
 
       <div class="deploy-row" style="margin-top:22px">
         <div class="deploy-card">
-          <h3>Deploy the full app</h3>
-          <p class="hint">Render runs the complete Express + WebSocket service using the repo's blueprint.</p>
-          <a class="btn btn-primary" href="https://render.com/deploy?repo=https://github.com/Teboho-Mohale98/gatekeeper-ts" target="_blank" rel="noopener">Deploy to Render</a>
+          <h3>Full stack on Vercel</h3>
+          <p class="hint">The Express + WebSocket engine and this page both run on Vercel. Functions serve WebSockets natively - no separate socket server to operate.</p>
+          <a class="btn btn-primary" href="https://vercel.com/new/clone?repository-url=https://github.com/Teboho-Mohale98/gatekeeper-ts" target="_blank" rel="noopener">Deploy to Vercel</a>
         </div>
         <div class="deploy-card">
-          <h3>Frontend on Vercel</h3>
-          <p class="hint">This landing page is static and hosted on Vercel. Vercel Functions don't support long-lived WebSockets, so the live engine lives on Render.</p>
-          <a class="btn" href="https://vercel.com/new/clone?repository-url=https://github.com/Teboho-Mohale98/gatekeeper-ts" target="_blank" rel="noopener">Deploy to Vercel</a>
+          <h3>Live API</h3>
+          <p class="hint">The deployed backend (project <code>gatekeeper-ts-api</code>) serves HTTP and <code>wss://…/realtime</code> from a single origin.</p>
+          <a class="btn" href="https://gatekeeper-ts-api.vercel.app/health" target="_blank" rel="noopener">Open /health</a>
         </div>
       </div>
     </div>
