@@ -477,15 +477,19 @@ Render injects `PORT` automatically. Once live, the service is reachable at
 
 ### Deploy the landing page to Vercel
 
-The [`vercel.json`](vercel.json) serves the static `site/` directory:
+The landing page lives in [`site/`](site) and is configured by
+[`site/vercel.json`](site/vercel.json). Deploy it as a static project rooted at
+that directory:
 
 ```bash
+cd site
 vercel --prod
 ```
 
-Or use the one-click clone button in the [showcase page](https://gatekeeper-ts.vercel.app)
-(Deploy → Vercel). After deploying, set `site/config.js` → `apiBaseUrl` to your
-Render URL so the in-browser playground talks to the live engine.
+When connecting the GitHub repo through the Vercel dashboard instead, set the
+project's **Root Directory** to `site`. After deploying, set `site/config.js` →
+`apiBaseUrl` to your Render URL so the in-browser playground talks to the live
+engine (it already defaults to `https://gatekeeper-ts.onrender.com`).
 
 ### Configuration
 
